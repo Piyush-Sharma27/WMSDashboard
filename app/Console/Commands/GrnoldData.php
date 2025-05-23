@@ -32,9 +32,9 @@ class GrnoldData extends Command
     public function handle()
     {
         //
-        $now = Carbon::now();
+       $now = Carbon::parse("2025-05-20 11:58:14");
         // dd( $now = Carbon::now());
-        $from = $now->copy()->subMonths(6)->startOfHour();
+        $from = $now->copy()->subMonths(2)->startOfHour();
         // dd($now->copy()->subMonths(6)->startOfHour());
         
        
@@ -72,7 +72,7 @@ class GrnoldData extends Command
 
         $now = Carbon::now();
         // dd( $now = Carbon::now());
-        $from = $now->copy()->subMonths(6)->startOfDay(); 
+        // $from = $now->copy()->subMonths(6)->startOfDay(); 
         // dd( $from = $now->copy()->subMonths(6)->startOfDay());
         $to = $now->copy()->endOfDay();
         // dd( $to = $now->copy()->endOfDay());
@@ -137,7 +137,7 @@ class GrnoldData extends Command
                     'total_okay_quantity'     => $totalOkayQuantity>0?$totalOkayQuantity: 0,
                     'total_rejected_quantity' => $totalRejectedQuantity>0?$totalRejectedQuantity: 0,
                     'grn_done'                => $totalGrn - $remanininggrn, 
-                    'total_grns'              =>$totalGrn,
+                    'total_grns'              => $totalGrn,
                     'created_at'              => now(),
                     'updated_at'              => now(),
                     'efficiency'              => 0

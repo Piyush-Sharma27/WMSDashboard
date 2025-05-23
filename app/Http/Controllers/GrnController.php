@@ -31,15 +31,16 @@ class GrnController extends Controller
 
     function grndata(Request $request)
     {
-      
+       $date = Carbon::parse("2025-05-20 11:58:14");
 
-      $today = Carbon::today()->startofDay();
-      $endofDay = Carbon::today()->endOfDay();
+      $today = $date->startofDay();
+    //   dd(Carbon::today());
+      $endofDay = $date->endOfDay();
 
-      $startofHour = Carbon::today()->hour(12)->minute(0)->second(0);
-      $endofHour = Carbon::today()->hour(13)->minute(59)->second(59);
-      $response = ConsolidatedGrnData::whereBetween('created_at',['2025-05-12 15:14:16','2025-05-12 16:14:16'])->get();
-        //  dd($response);
+      $startofHour = $date->hour(12)->minute(0)->second(0);
+      $endofHour = $date->hour(13)->minute(59)->second(59);
+      $response = ConsolidatedGrnData::whereBetween('time_slot',['2025-03-21 13:00:00','2025-03-21 14:00:00'])->get();
+          //dd($response);
         $totalQuantity =0;
         $remainingQuantity =0;
         $totalgrndone=0;
@@ -47,7 +48,9 @@ class GrnController extends Controller
         $rejectedQuantity=0;
         $efficiencyAvg =0;
         $count=0;
+        //dd($response);
         foreach ($response as $item) {
+           // dd($item);
             $count++;
     $totalQuantity += $item['total_grn_items'];
     $remainingQuantity += $item['remaining_grn'];

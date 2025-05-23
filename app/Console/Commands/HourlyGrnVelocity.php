@@ -40,11 +40,14 @@ class HourlyGrnVelocity extends Command
     {
         
        
-       
-        $now = Carbon::now()->subDay(02)->hour(15);
-        // $now = Carbon::now();
+              $date = Carbon::parse("2025-05-20 11:58:14");
+
+        $now = $date->subDay(02)->hour(15);
+        $now = $date;
         // dd($now);
-         $from = Carbon::now()->subDay(2);
+         $from = $date->subDay(2);
+         $from = $date;
+
         //  dd($now);
          $payload= [
             'from' =>$from->format('Y-m-d 00:00:00'),
@@ -58,7 +61,7 @@ class HourlyGrnVelocity extends Command
          ->post('https://uatreham.holisollogistics.com/api/cogneau/getGRN',$payload);
         //  dd($from, $to);
          $data = $response->json();
-        //  dd($data);
+         dd($data);
         // $data=false;
         if(isset($data['data']) && is_array($data['data'])) {
             // dd($data);
@@ -68,13 +71,21 @@ class HourlyGrnVelocity extends Command
             $totalokayQuantity =0;
             $totalgrn=0;
             $efficiency = 0;
-        
+            $client_id=null;
+            $location_code = null;
+            $masterclient_id = null;
+
+            
             
             foreach($data['data'] as $item){
                 // dd($item);
                 // dump($item['created_at'], $now, $now->copy()->subHour());
                 // dump(Carbon::parse($item['created_at'])->between($now->copy()->subHour(), $now));
                 // dd();
+                $client_id= $item['Client_Id'];
+                $location_code=$item['location_code'];
+                $location_code=$item['Master_Client_Id'];
+
                 if (isset($item['created_at']) && Carbon::parse($item['created_at'])->between($now->copy()->subHour(), $now)) {
                     if($item['dtl_status']!=0)
                         {
@@ -95,9 +106,10 @@ class HourlyGrnVelocity extends Command
                 // dd($grn_done,$remaininggrn,$grndone,$totalgrnitems,$totalokayQuantity,$totalrejectedquantity);
                     # code...
             }
-
+            dd($client_id);
             $houlygrndone = $totalgrn - $remaininggrn;
-
+            // dd($houlygrndone);
+            // 0
             // variable which will store current time only not date  == 12:00:00
 
             $currentTime = Carbon::now()->format('H:00:00');
@@ -105,6 +117,20 @@ class HourlyGrnVelocity extends Command
             $sixMonthAvg = ConsolidatedGrnData::whereRaw('TIME(time_slot) LIKE ?', ["%$currentTime%"])
             ->get();
 
+        //     dd($sixMonthAvg->take(5)->map(function ($record) {
+        //  return [
+        // 'id' => $record->id,
+        // 'time_slot' => $record->time_slot,
+        // 'total_grns' => $record->total_grns,
+        // 'grn_done' => $record->grn_done,
+        // ];
+        // }));
+            // dd($sixMonthAvg);
+          
+            // dd($  $sixMonthAvg = ConsolidatedGrnData::whereRaw('TIME(time_slot) LIKE ?', ["%$currentTime%"])
+            // ->get());
+
+            // dd($sixMonthAvg);
 
             // dd(ConsolidatedGrnData::whereRaw('TIME(time_slot) LIKE ?', ["%$currentTime%"])->get());
 
@@ -112,7 +138,7 @@ class HourlyGrnVelocity extends Command
                 $count=0;
                 $GrnDone=0;
             foreach ($sixMonthAvg as $data) {
-                // dd($data);
+                dd($data);
                 // dump($data->grn_done);
                 $data->total_grns >0 ? $count++:null;
                 $GrnDone +=$data->grn_done;
@@ -120,32 +146,40 @@ class HourlyGrnVelocity extends Command
                 // dd($GrnDone,$data);
             }
 
-        
+            // dd($GrnDone);
+            // dump($count);
+
             $avgGrnProcessed = $GrnDone/$count;
-            //   dump([
-            // 'GrnDone' => $GrnDone,
-            // 'count' => $count,
-            // 'avgGrnProcessed' => $avgGrnProcessed,
-            // ]);
+            // dd($avgGrnProcessed);
+            
+
+          
             $efficiency = $houlygrndone / $avgGrnProcessed *100;
+                // dump($avgGrnProcessed);
+                // dump($houlygrndone);
                 // dump($efficiency);
                 // dd(  $remaininggrn,  $totalgrnitems,  $totalrejectedquantity,   $GrnDone,   $totalokayQuantity,  $totalgrn);
+                
+                
+                
                 ConsolidatedGrnData::create([
                     'time_slot'                => Carbon::now(),
-                    'client_id'               => $item['Client_Id'] ,
-                    'location_code'           => $item['location_code'] , 
-                    'masterclient_id'         => $item['Master_Client_Id'] ?? 0, 
-                    'total_grn_items'         => $item['total_grn_items'] ??0,
+                    'client_id'               => $client_id ,
+                    'location_code'           => $location_code ,
+                    'masterclient_id'         => $masterclient_id, 
+                    'total_grn_items'         =>  $totalgrnitems ??0,
                     'total_okay_quantity'     => $totalokayQuantity ??0,
-                    'total_rejected_quantity' => $item['totalrejectedquantity'] ??0,
-                    'grn_done'                => $item['grn_done'] ?? 0,  
+                    'total_rejected_quantity' => $totalrejectedquantity ??0,
+                    'grn_done'                => $houlygrndone ?? 0,  
                     'created_at'              => now(),
                     'updated_at'              => now(),
                     'efficiency'              => $efficiency,
-                    'total_grn'               => $totalgrn ??null,
+                    'total_grn'               => $totalgrn ?? 0,
                     
                 ]);
 
+        
+        
         
 
                 
